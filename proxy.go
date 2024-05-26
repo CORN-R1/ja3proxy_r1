@@ -19,18 +19,62 @@ func fileExists(filename string) bool {
 }
 
 func customTLSWrap(conn net.Conn, sni string) (*utls.UConn, error) {
-	clientHelloID := utls.ClientHelloID{
-		Client: Config.TLSClient, Version: Config.TLSVersion, Seed: nil, Weights: nil,
-	}
-
 	uTLSConn := utls.UClient(
 		conn,
 		&utls.Config{
-			ServerName:         sni,
-			InsecureSkipVerify: true,
+			ServerName: sni,
 		},
-		clientHelloID,
+		utls.HelloCustom,
 	)
+
+	// useful article
+	// https://www.defensive-security.com/blog/hiding-behind-ja3-hash
+
+	spec := utls.ClientHelloSpec{
+		TLSVersMax: tls.VersionTLS13,
+		TLSVersMin: tls.VersionTLS10,
+		CipherSuites: []uint16{
+			0x1301, 0x1302, 0x1303,
+			0xc02b, 0xc02c, 0xcca9, 0xc02f, 0xc030,
+			0xcca8, 0xc013, 0xc014,
+			0x009c, 0x009d,
+			0x002f, 0x0035,
+		},
+		Extensions: []utls.TLSExtension{
+			&utls.SNIExtension{},
+			&utls.UtlsExtendedMasterSecretExtension{},
+			&utls.RenegotiationInfoExtension{},
+
+			&utls.SupportedCurvesExtension{Curves: []utls.CurveID{0x001d, 0x0017, 0x0018}},
+			&utls.SupportedPointsExtension{SupportedPoints: []byte{0x00}}, // uncompressed
+
+			&utls.SessionTicketExtension{},
+			&utls.ALPNExtension{AlpnProtocols: []string{"http/1.1"}},
+			&utls.StatusRequestExtension{},
+
+			&utls.SignatureAlgorithmsExtension{SupportedSignatureAlgorithms: []utls.SignatureScheme{
+				0x0403, 0x0804, 0x0401, 0x0503,
+				0x0805, 0x0501, 0x0806, 0x0601, 0x0201,
+			}},
+
+			&utls.KeyShareExtension{KeyShares: []utls.KeyShare{
+				{Group: utls.X25519},
+			}},
+
+			&utls.PSKKeyExchangeModesExtension{Modes: []uint8{1}}, // pskModeDHE
+
+			&utls.SupportedVersionsExtension{Versions: []uint16{
+				tls.VersionTLS13,
+				tls.VersionTLS12,
+			}},
+
+			&utls.UtlsPaddingExtension{GetPaddingLen: utls.BoringPaddingStyle},
+		},
+		GetSessionID: nil,
+	}
+	if err := uTLSConn.ApplyPreset(&spec); err != nil {
+		return nil, err
+	}
 	if err := uTLSConn.Handshake(); err != nil {
 		return nil, err
 	}
