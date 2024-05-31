@@ -1,40 +1,25 @@
 # JA3Proxy
 
-Customizing TLS (JA3) Fingerprints through HTTP Proxy
+Corn R1 / Alps R1 TLS (JA3) Fingerprints through HTTP Proxy
+
+This project is a fork of [ja3proxy](https://github.com/LyleMi/ja3proxy).
+
+Inspired by [DavidBuchanan314](https://github.com/DavidBuchanan314) & his [tests of R1 WebSocket API](https://gist.github.com/DavidBuchanan314/aafce6ba7fc49b19206bd2ad357e47fa). 
 
 ## Usage
 
 ### Building from source
 
 ```bash
-git clone https://github.com/lylemi/ja3proxy
+git clone https://github.com/CORN-R1/ja3proxy_r1
 cd ja3proxy
 make
-./ja3proxy -port 8080 -client 360Browser -version 7.5
+./ja3proxy -port 8080 -client Custom
 
 curl -v -k --proxy http://localhost:8080 https://www.example.com
 ```
 
-### Using docker CLI
-
-```bash
-docker run \
-      -v ./credentials:/app/credentials \
-      -p 8080:8080 \
-      ghcr.io/lylemi/ja3proxy:latest \
-      -cert /app/credentials/cert.pem \
-      -key /app/credentials/key.pem \
-      -client 360Browser \
-      -version 7.5
-```
-
-### Using docker compose
-
-See [`compose.yaml`](https://github.com/LyleMi/ja3proxy/blob/master/compose.yaml)
-
-```bash
-docker compose up -d
-```
+------------------------
 
 ### CLI usage
 
@@ -49,7 +34,7 @@ Usage of ja3proxy:
   -key string
         proxy tls key (default "key.pem")
   -client string
-        utls client (default "Golang")
+        utls client "Custom" for Corn R1 / Alps R1)
   -version string
         utls client version (default "0")
   -upstream string
@@ -58,33 +43,7 @@ Usage of ja3proxy:
         enable debug
 ```
 
-### Perdefined clients and versions
-
-> for full list, see: https://github.com/refraction-networking/utls/blob/master/u_common.go
-
-| Client | Version |
-| ------ | ------- |
-| Golang | 0 |
-| Firefox | 55 |
-| Firefox | 56 |
-| Firefox | 63 |
-| Firefox | 99 |
-| Firefox | 105 |
-| Chrome | 58 |
-| Chrome | 62 |
-| Chrome | 70 |
-| Chrome | 96 |
-| Chrome | 102 |
-| Chrome | 106 |
-| iOS | 12.1 |
-| iOS | 13 |
-| iOS | 14 |
-| Android | 11 |
-| Edge | 85 |
-| Edge | 106 |
-| Safari | 16.0 |
-| 360Browser | 7.5 |
-| QQBrowser | 11.1 |
+---------------------
 
 ## Contribution
 
